@@ -1,6 +1,11 @@
-# PixelGen
+<div align="center">
+  <img src="Assets/PixelGenLogo.png" alt="PixelGen Logo" width="400">
+  
+  <h1>PixelGen</h1>
+  <p><strong>Machine Learning para PixelArt, construído do zero em TypeScript</strong></p>
+</div>
 
-> Machine Learning para PixelArt, construído do zero em TypeScript
+<br>
 
 PixelGen é uma arquitetura de machine learning especializada em criar e transformar PixelArt. Desenvolvida completamente do zero, sem dependências de frameworks ML externos.
 
