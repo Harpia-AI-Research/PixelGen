@@ -1,172 +1,172 @@
-# Contribuindo para o PixelGen
+# Contributing to PixelGen
 
-Obrigado por considerar contribuir para o PixelGen! Este documento fornece diretrizes para contribuições.
+Thank you for considering contributing to PixelGen! This document provides guidelines for contributions.
 
-## 🎯 Como Contribuir
+## 🎯 How to Contribute
 
-### Reportando Bugs
+### Reporting Bugs
 
-Se você encontrou um bug, abra uma issue com:
+If you found a bug, open an issue with:
 
-1. **Título claro** - Descreva o problema em poucas palavras
-2. **Descrição detalhada** - Explique o que aconteceu
-3. **Passos para reproduzir** - Como reproduzir o problema
-4. **Comportamento esperado** - O que deveria acontecer
-5. **Ambiente** - Versão do Node.js, sistema operacional, etc.
-6. **Código exemplo** - Se possível, um snippet mínimo que reproduz o problema
+1. **Clear title** - Describe the problem briefly
+2. **Detailed description** - Explain what happened
+3. **Steps to reproduce** - How to reproduce the problem
+4. **Expected behavior** - What should happen
+5. **Environment** - Node.js version, OS, etc.
+6. **Code example** - If possible, a minimal snippet that reproduces the issue
 
-### Sugerindo Features
+### Suggesting Features
 
-Para sugerir uma nova feature:
+To suggest a new feature:
 
-1. **Verifique issues existentes** - Talvez já esteja planejado
-2. **Descreva o caso de uso** - Por que essa feature é útil?
-3. **Proponha uma solução** - Como você imagina que funcionaria?
-4. **Considere alternativas** - Outras formas de resolver o problema?
+1. **Check existing issues** - Maybe it's already planned
+2. **Describe the use case** - Why is this feature useful?
+3. **Propose a solution** - How do you imagine it would work?
+4. **Consider alternatives** - Other ways to solve the problem?
 
 ### Pull Requests
 
-1. **Fork o repositório**
-2. **Crie uma branch** - `git checkout -b feature/minha-feature`
-3. **Faça suas mudanças** - Siga as convenções de código
-4. **Teste suas mudanças** - Certifique-se que funciona
-5. **Commit suas mudanças** - Mensagens claras e descritivas
-6. **Push para o fork** - `git push origin feature/minha-feature`
-7. **Abra um Pull Request** - Descreva suas mudanças
+1. **Fork the repository**
+2. **Create a branch** - `git checkout -b feature/my-feature`
+3. **Make your changes** - Follow code conventions
+4. **Test your changes** - Make sure it works
+5. **Commit your changes** - Clear and descriptive messages
+6. **Push to fork** - `git push origin feature/my-feature`
+7. **Open a Pull Request** - Describe your changes
 
-## 📝 Convenções de Código
+## 📝 Code Conventions
 
 ### TypeScript
 
 - Use **TypeScript strict mode**
-- Prefira **interfaces** para tipos públicos
-- Use **tipos explícitos** em parâmetros de função
-- Evite `any` - use tipos específicos ou `unknown`
+- Prefer **interfaces** for public types
+- Use **explicit types** in function parameters
+- Avoid `any` - use specific types or `unknown`
 
-### Nomenclatura
+### Naming
 
 ```typescript
 // Classes: PascalCase
 class PixelGenModel { }
 
-// Funções e variáveis: camelCase
+// Functions and variables: camelCase
 function trainModel() { }
 const learningRate = 0.001;
 
-// Constantes: UPPER_SNAKE_CASE
+// Constants: UPPER_SNAKE_CASE
 const DEFAULT_BATCH_SIZE = 4;
 
-// Tipos e interfaces: PascalCase
+// Types and interfaces: PascalCase
 interface ModelConfig { }
 type TensorShape = number[];
 ```
 
-### Comentários
+### Comments
 
 ```typescript
 /**
- * Descrição da função
- * @param input - Descrição do parâmetro
- * @returns Descrição do retorno
+ * Function description
+ * @param input - Parameter description
+ * @returns Return value description
  */
 function forward(input: Tensor): Tensor {
-  // Comentários inline quando necessário
+  // Inline comments when necessary
   return output;
 }
 ```
 
-### Estrutura de Arquivos
+### File Structure
 
 ```
 src/
-├── core/          # Fundação (Tensor, autograd)
+├── core/          # Foundation (Tensor, autograd)
 ├── layers/        # Building blocks (Conv2D, Dense)
-├── model/         # Arquiteturas de modelos
-├── training/      # Otimizadores, loss, trainer
-├── data/          # Data loading e preprocessing
-└── io/            # Salvar/carregar modelos
+├── model/         # Model architectures
+├── training/      # Optimizers, loss, trainer
+├── data/          # Data loading and preprocessing
+└── io/            # Save/load models
 ```
 
-## 🧪 Testes
+## 🧪 Testing
 
-Por enquanto, o projeto não tem suite de testes automatizados. Contribuições para adicionar testes são muito bem-vindas!
+Currently, the project does not have automated tests. Contributions to add tests are very welcome!
 
-### Testando Manualmente
+### Manual Testing
 
 ```bash
 # Build
 npm run build
 
-# Executar exemplos
+# Run examples
 npm run example:basic
 npm run example:advanced
 ```
 
-## 📚 Documentação
+## 📚 Documentation
 
-Se você adicionar uma nova feature, por favor:
+If you add a new feature, please:
 
-1. Atualize o README se necessário
-2. Adicione comentários no código
-3. Crie ou atualize documentação em `docs/`
-4. Adicione exemplos se apropriado
+1. Update the README if necessary
+2. Add code comments
+3. Create or update documentation in `Documentation/`
+4. Add examples if appropriate
 
-## 🎨 Áreas Que Precisam de Ajuda
+## 🎨 Areas That Need Help
 
-### Alta Prioridade
+### High Priority
 
-- [ ] **Parser de imagens PNG/JPG** - Implementar carregamento nativo de imagens
-- [ ] **Testes automatizados** - Criar suite de testes com Jest ou similar
-- [ ] **CLI** - Interface de linha de comando para treino/geração
-- [ ] **Otimizações de performance** - SIMD, multi-threading, etc.
+- [ ] **PNG/JPEG image parser** - Implement native image loading
+- [ ] **Automated tests** - Create test suite with Jest or similar
+- [ ] **CLI** - Command-line interface for training/generation
+- [ ] **Performance optimizations** - SIMD, multi-threading, etc.
 
-### Média Prioridade
+### Medium Priority
 
-- [ ] **Validação de dados** - Melhor validação de inputs
-- [ ] **Logging** - Sistema de logging estruturado
-- [ ] **Visualização** - Ferramentas para visualizar treinamento
-- [ ] **Documentação** - Mais exemplos e tutoriais
+- [ ] **Data validation** - Better input validation
+- [ ] **Logging** - Structured logging system
+- [ ] **Visualization** - Tools to visualize training
+- [ ] **Documentation** - More examples and tutorials
 
-### Baixa Prioridade
+### Low Priority
 
-- [ ] **Suporte a RGBA** - Transparência em imagens
-- [ ] **Export para outros formatos** - ONNX, TensorFlow.js
-- [ ] **Modelos pre-treinados** - Disponibilizar modelos base
+- [ ] **RGBA support** - Transparency in images
+- [ ] **Export to other formats** - ONNX, TensorFlow.js
+- [ ] **Pre-trained models** - Provide base models
 
-## 🤔 Perguntas?
+## 🤔 Questions?
 
-Se tiver dúvidas sobre como contribuir:
+If you have questions about how to contribute:
 
-1. Abra uma issue com a tag `question`
-2. Descreva sua dúvida claramente
-3. Responderemos o mais rápido possível
+1. Open an issue with the `question` tag
+2. Describe your question clearly
+3. We'll respond as soon as possible
 
-## 📜 Código de Conduta
+## 📜 Code of Conduct
 
-### Nossa Promessa
+### Our Pledge
 
-Estamos comprometidos em proporcionar uma experiência acolhedora e inclusiva para todos.
+We are committed to providing a welcoming and inclusive experience for everyone.
 
-### Comportamento Esperado
+### Expected Behavior
 
-- Use linguagem acolhedora e inclusiva
-- Seja respeitoso com diferentes pontos de vista
-- Aceite críticas construtivas
-- Foque no que é melhor para a comunidade
-- Mostre empatia com outros membros
+- Use welcoming and inclusive language
+- Be respectful of different viewpoints
+- Accept constructive criticism
+- Focus on what's best for the community
+- Show empathy towards other members
 
-### Comportamento Inaceitável
+### Unacceptable Behavior
 
-- Linguagem ou imagens sexualizadas
-- Trolling, comentários insultuosos ou depreciativos
-- Assédio público ou privado
-- Publicar informações privadas de outros sem permissão
-- Outra conduta que seria considerada inadequada em ambiente profissional
+- Sexualized language or images
+- Trolling, insulting or derogatory comments
+- Public or private harassment
+- Publishing others' private information without permission
+- Other conduct that would be considered inappropriate in a professional setting
 
-## 📄 Licença
+## 📄 License
 
-Ao contribuir, você concorda que suas contribuições serão licenciadas sob a mesma licença BSD-3-Clause do projeto.
+By contributing, you agree that your contributions will be licensed under the same BSD-3-Clause license as the project.
 
 ---
 
-Obrigado por ajudar a tornar o PixelGen melhor! 🎨✨
+Thank you for helping make PixelGen better! 🎨✨

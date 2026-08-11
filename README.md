@@ -281,9 +281,12 @@ pixelgen/
 │   ├── advanced-usage.ts
 │   └── train-with-images.ts
 │
-├── docs/                  # Documentation
-│   ├── ARCHITECTURE.md    # Technical architecture
-│   └── GETTING_STARTED.md # Tutorial
+├── Documentation/         # Complete documentation
+│   ├── 01-Introduction.md
+│   ├── 02-Installation.md
+│   ├── 03-QuickStart.md
+│   ├── 04-CoreConcepts.md
+│   └── 05-API-Reference.md
 │
 └── VISION/                # Project vision
     └── README.md
@@ -531,11 +534,15 @@ class ImageDataset {
 
 ## Documentation
 
-- **[Getting Started](docs/GETTING_STARTED.md)**: Step-by-step tutorial
-- **[Architecture Guide](docs/ARCHITECTURE.md)**: Deep technical overview
-- **[Project Vision](VISION/README.md)**: Philosophy and design principles
-- **[Contributing](CONTRIBUTING.md)**: How to contribute
-- **[Changelog](CHANGELOG.md)**: Version history
+- **[Getting Started](Documentation/README.md)** - Complete documentation index
+- **[Introduction](Documentation/01-Introduction.md)** - What is PixelGen?
+- **[Installation](Documentation/02-Installation.md)** - Setup guide
+- **[Quick Start](Documentation/03-QuickStart.md)** - Train your first model
+- **[Core Concepts](Documentation/04-CoreConcepts.md)** - Understand the fundamentals
+- **[API Reference](Documentation/05-API-Reference.md)** - Complete API documentation
+- **[Project Vision](VISION/README.md)** - Philosophy and design principles
+- **[Contributing](CONTRIBUTING.md)** - How to contribute
+- **[Changelog](CHANGELOG.md)** - Version history
 
 ---
 
@@ -574,7 +581,8 @@ PixelGen is an independent research project exploring domain-specific machine le
   <strong>PixelGen</strong> — Crafting PixelArt through Machine Learning
   <br><br>
   <a href="https://github.com/Harpia-AI-Research/PixelGen">GitHub</a> •
-  <a href="docs/GETTING_STARTED.md">Tutorial</a> •
-  <a href="docs/ARCHITECTURE.md">Architecture</a> •
+  <a href="Documentation/README.md">Documentation</a> •
+  <a href="Documentation/03-QuickStart.md">Quick Start</a> •
+  <a href="Documentation/05-API-Reference.md">API Reference</a> •
   <a href="CONTRIBUTING.md">Contributing</a>
 </div>

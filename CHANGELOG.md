@@ -1,100 +1,86 @@
 # Changelog
 
-Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
+All notable changes to this project will be documented in this file.
 
-O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
-e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
 ### Added
-- Parser de imagens PNG e JPEG
-- Suporte a carregamento de imagens de diretórios
-- Redimensionamento automático de imagens para 32x32
-- Exemplo de treinamento com imagens reais (`train-with-images.ts`)
-- Conversão automática de formatos de imagem para tensores
-- Dependências: `pngjs` e `jpeg-js` para processamento de imagens
+- PNG and JPEG image parser
+- Support for loading images from directories
+- Automatic image resizing to 32×32
+- Training example with real images (`train-with-images.ts`)
+- Automatic conversion from image formats to tensors
+- Dependencies: `pngjs` and `jpeg-js` for image processing
 
 ---
 
 ## [0.1.0] - 2026-08-10
 
-### Adicionado
+### Added
 
 #### Core
-- Implementação da classe `Tensor` com suporte a operações n-dimensionais
-- Sistema de autograd (diferenciação automática)
-- Funções de ativação: ReLU, Leaky ReLU, Sigmoid, Tanh, Softmax
-- Uso de `Float32Array` para performance
+- Implementation of `Tensor` class with support for n-dimensional operations
+- Automatic differentiation system (autograd)
+- Activation functions: ReLU, Leaky ReLU, Sigmoid, Tanh, Softmax
+- Use of `Float32Array` for performance
 
 #### Layers
-- `Dense` - Camada totalmente conectada
-- `Conv2D` - Convolução 2D com padding e stride configuráveis
-- `MaxPool2D` e `AvgPool2D` - Pooling layers
-- `Upsample2D` - Upsampling para decoder
+- `Dense` - Fully connected layer
+- `Conv2D` - 2D Convolution with configurable padding and stride
+- `MaxPool2D` and `AvgPool2D` - Pooling layers
+- `Upsample2D` - Upsampling for decoder
 
 #### Model
-- `PixelGenModel` - Autoencoder convolucional fixo para PixelArt
-- Arquitetura encoder-decoder otimizada para imagens 32x32
-- Suporte a metadados e configuração
+- `PixelGenModel` - Fixed convolutional autoencoder for PixelArt
+- Encoder-decoder architecture optimized for 32×32 images
+- Support for metadata and configuration
 
 #### Training
-- Otimizadores: `SGD` (com momentum) e `Adam`
-- Loss functions: MSE, MAE, BCE, e PixelArt-specific loss
-- Classe `Trainer` com loop de treinamento completo
-- Tracking de estatísticas de treinamento
+- Optimizers: `SGD` (with momentum) and `Adam`
+- Loss functions: MSE, MAE, BCE, and PixelArt-specific loss
+- `Trainer` class with complete training loop
+- Training statistics tracking
 
 #### Data
-- `ImageDataset` para gerenciar datasets
-- Utilitários de normalização e denormalização
-- Função para criar datasets de teste
-- Suporte a batchificação e shuffle
+- `ImageDataset` for dataset management
+- Normalization and denormalization utilities
+- Function to create test datasets
+- Support for batching and shuffling
 
 #### I/O
-- Formato `.pgm` (Pixel Gen Model) - binário com header JSON
-- Funções para salvar e carregar modelos
-- Função para inspecionar modelos sem carregar pesos completos
+- `.pgm` format (Pixel Gen Model) - binary with JSON header
+- Functions to save and load models
+- Function to inspect models without loading full weights
 
-#### Documentação
-- README principal com guia de uso
-- Documento de visão do projeto (VISION/)
+#### Documentation
+- Main README with usage guide
+- Project vision document (VISION/)
 - Getting Started guide
-- Documentação de arquitetura técnica
-- Exemplos: básico e avançado
-- Licença MIT
+- Technical architecture documentation
+- Examples: basic and advanced
+- BSD-3-Clause License
 
 #### Tooling
-- Configuração TypeScript
-- Scripts npm para build, dev, e exemplos
-- .gitignore configurado
-- package.json com metadados completos
+- TypeScript configuration
+- npm scripts for build, dev, and examples
+- Configured .gitignore
+- package.json with complete metadata
 
-### Notas
+### Notes
 
-Esta é a primeira versão pública do PixelGen. A arquitetura é fixa e focada em demonstrar o conceito de ML para PixelArt construído do zero.
+This is the first public version of PixelGen. The architecture is fixed and focused on demonstrating the concept of ML for PixelArt built from scratch.
 
-### Limitações Conhecidas
+### Known Limitations
 
-- Parser de imagens PNG/JPG não implementado (usa dados de teste)
-- Arquitetura fixa em 32x32 pixels
-- Apenas RGB (3 canais)
-- Autograd simplificado
-- Performance limitada por execução em CPU puro
-
-### Próximos Passos
-
-Veja o roadmap no README para features planejadas para versões futuras.
+- PNG/JPEG image parser not implemented (uses test data)
+- Fixed architecture at 32×32 pixels
+- RGB only (3 channels)
+- Simplified autograd
+- Performance limited by pure CPU execution
 
 ---
 
-## [Unreleased]
-
-### Planejado para v0.2.0
-- [ ] Parser de imagens PNG
-- [ ] CLI para treino e geração
-- [ ] Suporte a diferentes tamanhos de entrada
-- [ ] Otimizações de performance (multi-threading)
-
----
-
-[0.1.0]: https://github.com/user/pixelgen/releases/tag/v0.1.0
+[0.1.0]: https://github.com/Harpia-AI-Research/PixelGen/releases/tag/v0.1.0
