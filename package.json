@@ -1,0 +1,31 @@
+{
+  "name": "pixelgen",
+  "version": "0.1.0",
+  "description": "Machine Learning architecture for PixelArt generation, built from scratch in TypeScript",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "if (Test-Path dist) { Remove-Item -Recurse -Force dist }",
+    "example:basic": "npm run build && node dist/examples/basic-training.js",
+    "example:advanced": "npm run build && node dist/examples/advanced-usage.js",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "pixelart",
+    "machine-learning",
+    "neural-network",
+    "image-generation",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
