@@ -160,7 +160,7 @@ Este é um projeto experimental em desenvolvimento. Sugestões e contribuições
 
 ## 📄 Licença
 
-MIT
+BSD-3-Clause
 
 ---
 

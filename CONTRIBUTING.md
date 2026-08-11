@@ -165,7 +165,7 @@ Estamos comprometidos em proporcionar uma experiência acolhedora e inclusiva pa
 
 ## 📄 Licença
 
-Ao contribuir, você concorda que suas contribuições serão licenciadas sob a mesma licença MIT do projeto.
+Ao contribuir, você concorda que suas contribuições serão licenciadas sob a mesma licença BSD-3-Clause do projeto.
 
 ---
 

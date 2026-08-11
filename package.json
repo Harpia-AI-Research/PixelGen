@@ -20,7 +20,7 @@
     "typescript"
   ],
   "author": "",
-  "license": "MIT",
+  "license": "BSD-3-Clause",
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
