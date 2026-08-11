@@ -1,5 +1,5 @@
 {
-  "name": "@harpia-ai/pixelgen",
+  "name": "pixelgen",
   "version": "0.1.0",
   "description": "A ground-up Machine Learning architecture for PixelArt generation and transformation, built from scratch in TypeScript",
   "main": "dist/index.js",
