@@ -1,13 +1,20 @@
 {
-  "name": "pixelgen",
+  "name": "@harpia-ai/pixelgen",
   "version": "0.1.0",
-  "description": "Machine Learning architecture for PixelArt generation, built from scratch in TypeScript",
+  "description": "A ground-up Machine Learning architecture for PixelArt generation and transformation, built from scratch in TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "if (Test-Path dist) { Remove-Item -Recurse -Force dist }",
+    "prepublishOnly": "npm run build",
     "example:basic": "npm run build && node dist/examples/basic-training.js",
     "example:advanced": "npm run build && node dist/examples/advanced-usage.js",
     "example:images": "npm run build && node dist/examples/train-with-images.js",
@@ -15,13 +22,30 @@
   },
   "keywords": [
     "pixelart",
+    "pixel-art",
     "machine-learning",
     "neural-network",
+    "deep-learning",
     "image-generation",
-    "typescript"
+    "autoencoder",
+    "typescript",
+    "cpu-training",
+    "game-development",
+    "sprite-generation",
+    "retro-graphics",
+    "computer-vision",
+    "ml-from-scratch"
   ],
-  "author": "",
+  "author": "Harpia AI Research",
   "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Harpia-AI-Research/PixelGen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Harpia-AI-Research/PixelGen/issues"
+  },
+  "homepage": "https://github.com/Harpia-AI-Research/PixelGen#readme",
   "dependencies": {
     "pngjs": "^7.0.0",
     "jpeg-js": "^0.4.4"

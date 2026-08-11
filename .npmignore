@@ -1,0 +1,45 @@
+# Source files (only dist/ is needed)
+src/
+tsconfig.json
+
+# Examples (not needed in package)
+examples/
+
+# Documentation (users can read on GitHub)
+Documentation/
+VISION/
+docs/
+
+# Development files
+.git/
+.gitignore
+node_modules/
+
+# Build artifacts
+*.log
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+test/
+*.test.ts
+*.spec.ts
+
+# CI/CD
+.github/
+
+# Assets (not needed for usage)
+Assets/
+
+# Keep these
+!README.md
+!LICENSE
+!CHANGELOG.md
+!package.json
