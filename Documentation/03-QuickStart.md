@@ -6,17 +6,23 @@ This guide will walk you through training your first PixelGen model in under 5 m
 
 Perfect for understanding how PixelGen works before using real images.
 
-### Step 1: Create a Training Script
+### Step 1: Install PixelGen
 
-Create a new file `my-first-model.ts`:
+```bash
+npm install pixelgen
+```
 
-```typescript
-import {
+### Step 2: Create a Training Script
+
+Create a new file `my-first-model.js`:
+
+```javascript
+const {
   PixelGenModel,
   Trainer,
   createTestDataset,
   saveModel,
-} from './dist/index.js';
+} = require('pixelgen');
 
 // Create model
 console.log('Creating model...');
@@ -61,8 +67,7 @@ console.log('✓ Model saved to my-first-model.pgm');
 ### Step 2: Run the Script
 
 ```bash
-npm run build
-node my-first-model.ts
+node my-first-model.js
 ```
 
 ### Expected Output
@@ -121,15 +126,15 @@ PixelGen/
 
 ### Step 2: Create Training Script
 
-Create `train-with-images.ts`:
+Create `train-with-images.js`:
 
-```typescript
-import {
+```javascript
+const {
   PixelGenModel,
   Trainer,
   ImageDataset,
   saveModel,
-} from './dist/index.js';
+} = require('pixelgen');
 
 // Create model
 const model = new PixelGenModel(3, 3);
@@ -185,8 +190,7 @@ console.log('✓ Model saved to pixelart-model.pgm');
 ### Step 3: Run Training
 
 ```bash
-npm run build
-node train-with-images.ts
+node train-with-images.js
 ```
 
 ### Expected Output
@@ -245,8 +249,8 @@ Typical size: 0.5 - 2 MB
 
 ### Load Model
 
-```typescript
-import { loadModel, Tensor } from './dist/index.js';
+```javascript
+const { loadModel, Tensor } = require('pixelgen');
 
 // Load trained model
 const { model, hyperparameters } = loadModel('pixelart-model.pgm');

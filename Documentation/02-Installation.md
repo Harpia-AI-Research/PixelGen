@@ -27,7 +27,17 @@
 
 ## Installation Steps
 
-### Method 1: Clone from GitHub (Recommended)
+### Method 1: Install from npm (Recommended)
+
+```bash
+npm install pixelgen
+```
+
+That's it! PixelGen is now installed and ready to use.
+
+### Method 2: Clone from GitHub
+
+For development or to access examples:
 
 ```bash
 # Clone the repository
@@ -43,7 +53,7 @@ npm install
 npm run build
 ```
 
-### Method 2: Download ZIP
+### Method 3: Download ZIP
 
 1. Go to https://github.com/Harpia-AI-Research/PixelGen
 2. Click "Code" → "Download ZIP"
@@ -56,6 +66,23 @@ npm run build
 ```
 
 ## Verify Installation
+
+### If installed via npm
+
+Create a test file `test.js`:
+
+```javascript
+const pixelgen = require('pixelgen');
+console.log('PixelGen loaded successfully!');
+console.log('Available exports:', Object.keys(pixelgen));
+```
+
+Run it:
+```bash
+node test.js
+```
+
+### If built from source
 
 After installation, verify everything works:
 

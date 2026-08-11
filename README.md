@@ -133,7 +133,13 @@ This custom loss function encourages the model to maintain the crisp boundaries 
 - npm or yarn package manager
 - 4GB+ RAM recommended for training
 
-### Setup
+### Install via npm
+
+```bash
+npm install pixelgen
+```
+
+### Build from Source
 
 ```bash
 # Clone the repository
