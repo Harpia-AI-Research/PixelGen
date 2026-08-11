@@ -37,6 +37,8 @@ npm run build
 
 ## 🚀 Uso Rápido
 
+### Com Dados de Teste
+
 ```typescript
 import {
   PixelGenModel,
@@ -48,7 +50,7 @@ import {
 // Criar modelo
 const model = new PixelGenModel(3, 3); // RGB input/output
 
-// Criar dataset
+// Criar dataset de teste
 const dataset = createTestDataset(20, 3, 32, 32);
 
 // Treinar
@@ -72,14 +74,62 @@ saveModel(model, 'meu-modelo.pgm', {
 });
 ```
 
+### Com Imagens Reais (PNG/JPG)
+
+```typescript
+import {
+  PixelGenModel,
+  Trainer,
+  ImageDataset,
+  saveModel,
+} from 'pixelgen';
+
+// Criar modelo
+const model = new PixelGenModel(3, 3);
+
+// Carregar imagens de uma pasta
+const dataset = new ImageDataset({
+  targetSize: 32,
+  normalize: true,
+  channels: 3,
+});
+
+dataset.loadFromDirectory('./meu-dataset');
+
+// Treinar
+const trainer = new Trainer(model, {
+  epochs: 50,
+  batchSize: 4,
+  learningRate: 0.001,
+  optimizer: 'adam',
+  lossFunction: 'pixelart',
+  verbose: true,
+});
+
+trainer.train(dataset);
+
+// Salvar
+saveModel(model, 'modelo-treinado.pgm', {
+  learningRate: 0.001,
+  batchSize: 4,
+  epochs: 50,
+  optimizer: 'adam',
+});
+```
+
 ## 📚 Exemplos
 
 Veja exemplos completos na pasta `examples/`:
 
 ```bash
-# Executar exemplo básico
-npm run build
-node dist/examples/basic-training.js
+# Exemplo básico (usa dados de teste)
+npm run example:basic
+
+# Exemplo avançado (fine-tuning, avaliação)
+npm run example:advanced
+
+# Treinar com imagens reais (PNG/JPG)
+npm run example:images
 ```
 
 ## 🗂️ Estrutura do Projeto

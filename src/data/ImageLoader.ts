@@ -1,11 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { PNG } from 'pngjs';
+import * as jpeg from 'jpeg-js';
 import { Tensor } from '../core/Tensor';
 
 /**
  * Image data loader for PixelArt training
- * Note: For v1, we'll use a simple approach with Node.js built-ins
- * In future versions, we can add PNG/JPG parsing
+ * Supports PNG and JPG/JPEG formats
  */
 
 export interface ImageData {
@@ -32,7 +33,6 @@ export class ImageDataset {
 
   /**
    * Load images from a directory
-   * For v1: expects raw image data files or will be extended with image parsing
    */
   loadFromDirectory(directoryPath: string): void {
     if (!fs.existsSync(directoryPath)) {
@@ -54,10 +54,135 @@ export class ImageDataset {
     
     this.imagePaths = imageFiles.map(f => path.join(directoryPath, f));
     
-    // Note: Actual image parsing would be implemented here
-    // For now, this is a placeholder that shows the structure
-    console.log('Note: Image parsing not yet implemented in v1');
-    console.log('You will need to provide pre-processed tensor data or implement PNG/JPG parsing');
+    // Load and parse each image
+    for (const imagePath of this.imagePaths) {
+      try {
+        const tensor = this.loadImage(imagePath);
+        this.images.push(tensor);
+      } catch (error) {
+        console.warn(`Failed to load image ${imagePath}:`, error);
+      }
+    }
+    
+    console.log(`Successfully loaded ${this.images.length} images`);
+  }
+
+  /**
+   * Load a single image file (PNG or JPG)
+   */
+  private loadImage(imagePath: string): Tensor {
+    const ext = path.extname(imagePath).toLowerCase();
+    
+    let imageData: ImageData;
+    
+    if (ext === '.png') {
+      imageData = this.loadPNG(imagePath);
+    } else if (ext === '.jpg' || ext === '.jpeg') {
+      imageData = this.loadJPEG(imagePath);
+    } else {
+      throw new Error(`Unsupported image format: ${ext}`);
+    }
+
+    // Resize to target size if needed
+    if (imageData.width !== this.config.targetSize || imageData.height !== this.config.targetSize) {
+      imageData = this.resizeImage(imageData, this.config.targetSize, this.config.targetSize);
+    }
+
+    // Convert to tensor [1, channels, height, width]
+    const tensor = this.imageDataToTensor(imageData);
+    
+    // Normalize if configured
+    if (this.config.normalize) {
+      return normalizeTensor(tensor);
+    }
+    
+    return tensor;
+  }
+
+  /**
+   * Load PNG image
+   */
+  private loadPNG(imagePath: string): ImageData {
+    const buffer = fs.readFileSync(imagePath);
+    const png = PNG.sync.read(buffer);
+    
+    return {
+      width: png.width,
+      height: png.height,
+      channels: png.data.length / (png.width * png.height),
+      data: png.data,
+    };
+  }
+
+  /**
+   * Load JPEG image
+   */
+  private loadJPEG(imagePath: string): ImageData {
+    const buffer = fs.readFileSync(imagePath);
+    const jpg = jpeg.decode(buffer);
+    
+    return {
+      width: jpg.width,
+      height: jpg.height,
+      channels: 4, // JPEG decoder returns RGBA
+      data: jpg.data,
+    };
+  }
+
+  /**
+   * Resize image using nearest neighbor interpolation
+   */
+  private resizeImage(imageData: ImageData, newWidth: number, newHeight: number): ImageData {
+    const { width, height, channels, data } = imageData;
+    const newData = new Uint8Array(newWidth * newHeight * channels);
+
+    const xRatio = width / newWidth;
+    const yRatio = height / newHeight;
+
+    for (let y = 0; y < newHeight; y++) {
+      for (let x = 0; x < newWidth; x++) {
+        const srcX = Math.floor(x * xRatio);
+        const srcY = Math.floor(y * yRatio);
+        
+        const srcIdx = (srcY * width + srcX) * channels;
+        const dstIdx = (y * newWidth + x) * channels;
+        
+        for (let c = 0; c < channels; c++) {
+          newData[dstIdx + c] = data[srcIdx + c];
+        }
+      }
+    }
+
+    return {
+      width: newWidth,
+      height: newHeight,
+      channels,
+      data: newData,
+    };
+  }
+
+  /**
+   * Convert ImageData to Tensor [1, channels, height, width]
+   */
+  private imageDataToTensor(imageData: ImageData): Tensor {
+    const { width, height, channels: srcChannels, data } = imageData;
+    const targetChannels = this.config.channels;
+
+    // Allocate tensor data
+    const tensorData = new Float32Array(targetChannels * height * width);
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const srcIdx = (y * width + x) * srcChannels;
+        
+        for (let c = 0; c < Math.min(targetChannels, srcChannels); c++) {
+          const tensorIdx = c * height * width + y * width + x;
+          tensorData[tensorIdx] = data[srcIdx + c];
+        }
+      }
+    }
+
+    return new Tensor(tensorData, [1, targetChannels, height, width]);
   }
 
   /**

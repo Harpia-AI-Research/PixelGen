@@ -5,6 +5,18 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [Unreleased]
+
+### Added
+- Parser de imagens PNG e JPEG
+- Suporte a carregamento de imagens de diretórios
+- Redimensionamento automático de imagens para 32x32
+- Exemplo de treinamento com imagens reais (`train-with-images.ts`)
+- Conversão automática de formatos de imagem para tensores
+- Dependências: `pngjs` e `jpeg-js` para processamento de imagens
+
+---
+
 ## [0.1.0] - 2026-08-10
 
 ### Adicionado

@@ -10,6 +10,7 @@
     "clean": "if (Test-Path dist) { Remove-Item -Recurse -Force dist }",
     "example:basic": "npm run build && node dist/examples/basic-training.js",
     "example:advanced": "npm run build && node dist/examples/advanced-usage.js",
+    "example:images": "npm run build && node dist/examples/train-with-images.js",
     "prepare": "npm run build"
   },
   "keywords": [
@@ -21,8 +22,13 @@
   ],
   "author": "",
   "license": "BSD-3-Clause",
+  "dependencies": {
+    "pngjs": "^7.0.0",
+    "jpeg-js": "^0.4.4"
+  },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@types/pngjs": "^6.0.0",
     "typescript": "^5.0.0"
   },
   "engines": {
