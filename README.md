@@ -132,25 +132,7 @@ npm run clean
 - Node.js >= 18.0.0
 - TypeScript >= 5.0.0
 
-## 🛣️ Roadmap
-
-### v1.0 (MVP) - Atual
-- [x] Core tensor engine
-- [x] Autograd básico
-- [x] Layers fundamentais
-- [x] Modelo autoencoder fixo
-- [x] Treinamento em CPU
-- [x] Formato .pgm
-
-### Futuro
-- [ ] Parser de imagens PNG/JPG
-- [ ] CLI para treino e geração
-- [ ] Framework flexível (definir arquiteturas customizadas)
-- [ ] Otimizações de performance (SIMD, multi-threading)
-- [ ] Arquiteturas especializadas (sprites, tilesets, animações)
-- [ ] Suporte a transformação de imagens
-
-## 📖 Documentação
+##  Documentação
 
 Para entender a visão completa do projeto, veja [VISION/README.md](VISION/README.md).
 
