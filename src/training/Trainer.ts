@@ -1,7 +1,7 @@
 import { PixelGenModel } from '../model/PixelGenModel';
 import { ImageDataset } from '../data/ImageLoader';
 import { Optimizer, Adam } from './Optimizer';
-import { mseLoss, pixelArtLoss } from './Loss';
+import { mseLoss, pixelArtLoss, mseLossGrad, pixelArtLossGrad } from './Loss';
 import { Tensor } from '../core/Tensor';
 
 export interface TrainingConfig {
@@ -65,6 +65,9 @@ export class Trainer {
         const batch = dataset.getBatch(this.config.batchSize, i);
         if (!batch) break;
 
+        // Zero gradients before forward pass
+        this.model.zeroGrad();
+
         // Forward pass
         const output = this.model.forward(batch);
 
@@ -73,14 +76,14 @@ export class Trainer {
         epochLoss += loss;
         numBatches++;
 
-        // Backward pass (simplified - in full implementation would use autograd)
-        // For now, we'll just update the optimizer
-        // Note: Full backward pass would be implemented with proper autograd
+        // Backward pass - compute gradients
+        const outputGrad = this.calculateLossGrad(output, batch);
+        output.grad = outputGrad;
+        
+        // Backpropagate through the model
+        output.backward();
 
-        // Zero gradients
-        this.model.zeroGrad();
-
-        // Update parameters
+        // Update parameters using optimizer
         this.optimizer.step(this.model.parameters());
       }
 
@@ -111,6 +114,14 @@ export class Trainer {
       return pixelArtLoss(predicted, target);
     } else {
       return mseLoss(predicted, target);
+    }
+  }
+
+  private calculateLossGrad(predicted: Tensor, target: Tensor): Tensor {
+    if (this.config.lossFunction === 'pixelart') {
+      return pixelArtLossGrad(predicted, target);
+    } else {
+      return mseLossGrad(predicted, target);
     }
   }
 

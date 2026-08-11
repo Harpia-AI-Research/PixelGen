@@ -16,6 +16,8 @@ export function relu(input: Tensor): Tensor {
   }
 
   if (input.requiresGrad) {
+    result._prev.add(input);  // ADD INPUT TO GRAPH!
+    
     result._backward = () => {
       if (!result.grad) return;
       if (!input.grad) input.grad = Tensor.zerosLike(input);
@@ -41,6 +43,8 @@ export function leakyRelu(input: Tensor, alpha: number = 0.01): Tensor {
   }
 
   if (input.requiresGrad) {
+    result._prev.add(input);
+    
     result._backward = () => {
       if (!result.grad) return;
       if (!input.grad) input.grad = Tensor.zerosLike(input);
@@ -66,6 +70,8 @@ export function sigmoid(input: Tensor): Tensor {
   }
 
   if (input.requiresGrad) {
+    result._prev.add(input);
+    
     result._backward = () => {
       if (!result.grad) return;
       if (!input.grad) input.grad = Tensor.zerosLike(input);
@@ -92,6 +98,8 @@ export function tanh(input: Tensor): Tensor {
   }
 
   if (input.requiresGrad) {
+    result._prev.add(input);
+    
     result._backward = () => {
       if (!result.grad) return;
       if (!input.grad) input.grad = Tensor.zerosLike(input);

@@ -1,7 +1,7 @@
 {
   "name": "pixelgen",
-  "version": "0.1.0",
-  "description": "A ground-up Machine Learning architecture for PixelArt generation and transformation, built from scratch in TypeScript",
+  "version": "1.0.0",
+  "description": "A fully functional Machine Learning framework for PixelArt generation, built from scratch in TypeScript with complete backpropagation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -34,7 +34,9 @@
     "sprite-generation",
     "retro-graphics",
     "computer-vision",
-    "ml-from-scratch"
+    "ml-from-scratch",
+    "backpropagation",
+    "autograd"
   ],
   "author": "Harpia AI Research",
   "license": "BSD-3-Clause",

@@ -241,7 +241,7 @@ export class Tensor {
       throw new Error(`Cannot multiply matrices of shapes ${this.shape} and ${other.shape}`);
     }
     
-    const result = new Float32Array(m * p);
+    const resultData = new Float32Array(m * p);
     
     // Simple matrix multiplication (can be optimized later)
     for (let i = 0; i < m; i++) {
@@ -250,11 +250,53 @@ export class Tensor {
         for (let k = 0; k < n; k++) {
           sum += this.data[i * n + k] * other.data[k * p + j];
         }
-        result[i * p + j] = sum;
+        resultData[i * p + j] = sum;
       }
     }
     
-    return new Tensor(result, [m, p], this.requiresGrad || other.requiresGrad);
+    const result = new Tensor(resultData, [m, p], this.requiresGrad || other.requiresGrad);
+    
+    // Attach backward pass if gradients are needed
+    if (this.requiresGrad || other.requiresGrad) {
+      result._prev.add(this);
+      result._prev.add(other);
+      
+      result._backward = () => {
+        if (!result.grad) return;
+        
+        // Gradient w.r.t. this: dL/dThis = dL/dResult @ other^T
+        if (this.requiresGrad) {
+          if (!this.grad) this.grad = Tensor.zerosLike(this);
+          
+          for (let i = 0; i < m; i++) {
+            for (let k = 0; k < n; k++) {
+              let sum = 0;
+              for (let j = 0; j < p; j++) {
+                sum += result.grad.data[i * p + j] * other.data[k * p + j];
+              }
+              this.grad.data[i * n + k] += sum;
+            }
+          }
+        }
+        
+        // Gradient w.r.t. other: dL/dOther = this^T @ dL/dResult
+        if (other.requiresGrad) {
+          if (!other.grad) other.grad = Tensor.zerosLike(other);
+          
+          for (let k = 0; k < n; k++) {
+            for (let j = 0; j < p; j++) {
+              let sum = 0;
+              for (let i = 0; i < m; i++) {
+                sum += this.data[i * n + k] * result.grad.data[i * p + j];
+              }
+              other.grad.data[k * p + j] += sum;
+            }
+          }
+        }
+      };
+    }
+    
+    return result;
   }
 
   /**

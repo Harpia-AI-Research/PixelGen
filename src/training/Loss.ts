@@ -1,7 +1,7 @@
 import { Tensor } from '../core/Tensor';
 
 /**
- * Mean Squared Error loss
+ * Mean Squared Error loss and gradient
  */
 export function mseLoss(predicted: Tensor, target: Tensor): number {
   if (predicted.data.length !== target.data.length) {
@@ -15,6 +15,20 @@ export function mseLoss(predicted: Tensor, target: Tensor): number {
   }
 
   return sum / predicted.data.length;
+}
+
+/**
+ * MSE Loss gradient: dL/dPredicted = 2 * (predicted - target) / N
+ */
+export function mseLossGrad(predicted: Tensor, target: Tensor): Tensor {
+  const grad = Tensor.zerosLike(predicted);
+  const scale = 2.0 / predicted.data.length;
+  
+  for (let i = 0; i < predicted.data.length; i++) {
+    grad.data[i] = scale * (predicted.data[i] - target.data[i]);
+  }
+  
+  return grad;
 }
 
 /**
@@ -74,6 +88,29 @@ export function pixelArtLoss(
 }
 
 /**
+ * PixelArt Loss gradient
+ */
+export function pixelArtLossGrad(
+  predicted: Tensor,
+  target: Tensor,
+  edgeWeight: number = 0.3
+): Tensor {
+  // MSE gradient
+  const mseGrad = mseLossGrad(predicted, target);
+  
+  // Edge loss gradient
+  const edgeGrad = calculateEdgeLossGrad(predicted, target);
+  
+  // Combine gradients
+  const totalGrad = Tensor.zerosLike(predicted);
+  for (let i = 0; i < totalGrad.data.length; i++) {
+    totalGrad.data[i] = mseGrad.data[i] + edgeWeight * edgeGrad.data[i];
+  }
+  
+  return totalGrad;
+}
+
+/**
  * Calculate edge preservation loss
  * Encourages sharp transitions between colors
  */
@@ -107,4 +144,50 @@ function calculateEdgeLoss(predicted: Tensor, target: Tensor): number {
   }
 
   return totalLoss / count;
+}
+
+/**
+ * Calculate edge loss gradient
+ */
+function calculateEdgeLossGrad(predicted: Tensor, target: Tensor): Tensor {
+  const [batch, channels, height, width] = predicted.shape;
+  const grad = Tensor.zerosLike(predicted);
+  const count = batch * channels * (height - 1) * (width - 1) * 2;
+  const scale = 1.0 / count;
+
+  for (let b = 0; b < batch; b++) {
+    for (let c = 0; c < channels; c++) {
+      for (let h = 0; h < height - 1; h++) {
+        for (let w = 0; w < width - 1; w++) {
+          const idx = b * channels * height * width + c * height * width + h * width + w;
+          const idxRight = idx + 1;
+          const idxDown = idx + width;
+
+          // Horizontal gradient contribution
+          const predDiffH = predicted.data[idx] - predicted.data[idxRight];
+          const targetDiffH = target.data[idx] - target.data[idxRight];
+          const predGradH = Math.abs(predDiffH);
+          const targetGradH = Math.abs(targetDiffH);
+          const signH = predGradH > targetGradH ? 1 : -1;
+          const gradSignH = predDiffH >= 0 ? 1 : -1;
+          
+          grad.data[idx] += scale * signH * gradSignH;
+          grad.data[idxRight] += scale * signH * (-gradSignH);
+
+          // Vertical gradient contribution
+          const predDiffV = predicted.data[idx] - predicted.data[idxDown];
+          const targetDiffV = target.data[idx] - target.data[idxDown];
+          const predGradV = Math.abs(predDiffV);
+          const targetGradV = Math.abs(targetDiffV);
+          const signV = predGradV > targetGradV ? 1 : -1;
+          const gradSignV = predDiffV >= 0 ? 1 : -1;
+          
+          grad.data[idx] += scale * signV * gradSignV;
+          grad.data[idxDown] += scale * signV * (-gradSignV);
+        }
+      }
+    }
+  }
+
+  return grad;
 }

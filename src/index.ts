@@ -17,7 +17,7 @@ export { PixelGenModel, ModelMetadata } from './model/PixelGenModel';
 
 // Training
 export { SGD, Adam, Optimizer } from './training/Optimizer';
-export { mseLoss, maeLoss, bceLoss, pixelArtLoss } from './training/Loss';
+export { mseLoss, maeLoss, bceLoss, pixelArtLoss, mseLossGrad, pixelArtLossGrad } from './training/Loss';
 export { Trainer, TrainingConfig, TrainingStats, DEFAULT_TRAINING_CONFIG } from './training/Trainer';
 
 // Data
@@ -32,3 +32,7 @@ export {
 
 // I/O
 export { saveModel, loadModel, inspectModel, Hyperparameters, PGMFile } from './io/ModelIO';
+
+// Debug utilities
+export { DebugUtils } from './debug/DebugUtils';
+export type { GradientInfo, ParameterInfo, TensorGradInfo, GraphNode } from './debug/DebugUtils';
