@@ -108,10 +108,14 @@ export function loadModel(filepath: string): {
   );
 
   // Convert weights buffer back to Float32Array
+  // Ensure proper alignment for Float32Array
+  const alignedBuffer = Buffer.alloc(weightsBuffer.length);
+  weightsBuffer.copy(alignedBuffer);
+  
   const allWeights = new Float32Array(
-    weightsBuffer.buffer,
-    weightsBuffer.byteOffset,
-    weightsBuffer.byteLength / Float32Array.BYTES_PER_ELEMENT
+    alignedBuffer.buffer,
+    alignedBuffer.byteOffset,
+    alignedBuffer.byteLength / Float32Array.BYTES_PER_ELEMENT
   );
 
   // Load weights into model parameters

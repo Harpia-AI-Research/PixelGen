@@ -13,6 +13,11 @@ export interface TrainingConfig {
   verbose: boolean;
 }
 
+export interface TrainingCallbacks {
+  onEpoch?: (epoch: number, loss: number, model: PixelGenModel) => void;
+  onBatch?: (epoch: number, batch: number, loss: number, model: PixelGenModel) => void;
+}
+
 export interface TrainingStats {
   epoch: number;
   loss: number;
@@ -42,9 +47,9 @@ export class Trainer {
   }
 
   /**
-   * Train the model
+   * Train the model with optional callbacks
    */
-  train(dataset: ImageDataset): TrainingStats[] {
+  train(dataset: ImageDataset, callbacks?: TrainingCallbacks): TrainingStats[] {
     console.log('Starting training...');
     console.log(`Epochs: ${this.config.epochs}`);
     console.log(`Batch size: ${this.config.batchSize}`);
@@ -101,6 +106,11 @@ export class Trainer {
         console.log(
           `Epoch ${epoch + 1}/${this.config.epochs} - Loss: ${avgLoss.toFixed(6)} - Time: ${epochTime}ms`
         );
+      }
+
+      // Call epoch callback if provided
+      if (callbacks?.onEpoch) {
+        callbacks.onEpoch(epoch + 1, avgLoss, this.model);
       }
     }
 
