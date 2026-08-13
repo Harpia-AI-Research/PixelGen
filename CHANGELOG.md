@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.2] - 2026-08-11
+
+### Added
+- **Real-time Checkpointing System**
+  - `TrainingCallbacks` interface for `onEpoch` and `onBatch` callbacks
+  - Real-time model saving during training
+  - Progress monitoring and checkpoint management
+  - Example patterns for early stopping and progress tracking
+
+### Changed
+- Enhanced `Trainer.train()` method with optional `callbacks` parameter
+- Improved training loop with real-time monitoring capabilities
+- Updated API documentation with callback examples
+
+### Fixed
+- Memory alignment issues in model I/O operations
+- Buffer allocation optimization for model persistence
+
+---
+
 ## [Unreleased]
 
 ### Added
@@ -83,4 +103,5 @@ This is the first public version of PixelGen. The architecture is fixed and focu
 
 ---
 
+[1.1.2]: https://github.com/Harpia-AI-Research/PixelGen/releases/tag/v1.1.2
 [0.1.0]: https://github.com/Harpia-AI-Research/PixelGen/releases/tag/v0.1.0

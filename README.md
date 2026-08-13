@@ -252,6 +252,47 @@ const output = model.forward(input);
 // Output is a tensor [1, 3, 32, 32] ready for visualization
 ```
 
+### Real-time Checkpointing
+
+For long training sessions, PixelGen supports real-time checkpointing to save progress and prevent data loss:
+
+```typescript
+import { PixelGenModel, Trainer, saveModel } from 'pixelgen';
+
+const model = new PixelGenModel(3, 3);
+const trainer = new Trainer(model, {
+  epochs: 100,
+  batchSize: 4,
+  learningRate: 0.001,
+  optimizer: 'adam',
+  lossFunction: 'pixelart',
+  verbose: true,
+});
+
+// Real-time checkpoint callback - saves every 20 epochs
+const checkpointCallback = (epoch: number, loss: number, currentModel: PixelGenModel) => {
+  if (epoch % 20 === 0) {
+    const filename = `checkpoint-epoch-${epoch.toString().padStart(3, '0')}.pgm`;
+    saveModel(currentModel, filename, {
+      learningRate: 0.001,
+      batchSize: 4,
+      epochs: epoch,
+      optimizer: 'adam',
+    });
+    console.log(`💾 Checkpoint saved: ${filename} (loss: ${loss.toFixed(6)})`);
+  }
+};
+
+// Train with real-time callbacks
+const stats = trainer.train(dataset, { onEpoch: checkpointCallback });
+```
+
+**Benefits:**
+- **Resume Training**: Continue from any checkpoint if interrupted
+- **Progress Monitoring**: Track training evolution in real-time
+- **Model Comparison**: Compare performance at different epochs
+- **Safety**: Never lose training progress due to crashes
+
 ---
 
 ## Project Structure
@@ -285,7 +326,8 @@ pixelgen/
 ├── examples/              # Usage examples
 │   ├── basic-training.ts
 │   ├── advanced-usage.ts
-│   └── train-with-images.ts
+│   ├── train-with-images.ts
+│   └── checkpointing-example.ts
 │
 ├── Documentation/         # Complete documentation
 │   ├── 01-Introduction.md
@@ -357,6 +399,9 @@ npm run example:advanced
 
 # Training with real images
 npm run example:images
+
+# Real-time checkpointing demonstration
+npm run example:checkpointing
 ```
 
 ### Example Output

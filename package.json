@@ -18,6 +18,7 @@
     "example:basic": "npm run build && node dist/examples/basic-training.js",
     "example:advanced": "npm run build && node dist/examples/advanced-usage.js",
     "example:images": "npm run build && node dist/examples/train-with-images.js",
+    "example:checkpointing": "npm run build && node dist/examples/checkpointing-example.js",
     "prepare": "npm run build"
   },
   "keywords": [

@@ -245,6 +245,71 @@ Typical size: 0.5 - 2 MB
 
 ---
 
+## Real-time Checkpointing (Advanced)
+
+For long training sessions, you can save checkpoints automatically during training.
+
+### Example with Checkpointing
+
+```javascript
+const {
+  PixelGenModel,
+  Trainer,
+  createTestDataset,
+  saveModel,
+} = require('pixelgen');
+
+// Create model and dataset
+const model = new PixelGenModel(3, 3);
+const dataset = createTestDataset(50, 3, 32, 32);
+
+// Configure trainer
+const trainer = new Trainer(model, {
+  epochs: 100,
+  batchSize: 4,
+  learningRate: 0.001,
+  optimizer: 'adam',
+  lossFunction: 'pixelart',
+  verbose: true,
+});
+
+// Real-time checkpoint callback
+const checkpointCallback = (epoch, loss, currentModel) => {
+  // Save every 20 epochs
+  if (epoch % 20 === 0) {
+    const filename = `checkpoint-epoch-${epoch.toString().padStart(3, '0')}.pgm`;
+    saveModel(currentModel, filename, {
+      learningRate: 0.001,
+      batchSize: 4,
+      epochs: epoch,
+      optimizer: 'adam',
+    });
+    console.log(`💾 Checkpoint saved: ${filename} (loss: ${loss.toFixed(6)})`);
+  }
+  
+  // Progress monitoring
+  if (epoch % 10 === 0) {
+    console.log(`📈 Progress: Epoch ${epoch}/100 - Loss: ${loss.toFixed(6)}`);
+  }
+};
+
+// Train with real-time callbacks
+console.log('Starting training with real-time checkpointing...\n');
+const stats = trainer.train(dataset, { onEpoch: checkpointCallback });
+
+console.log('\n✓ Training complete with checkpoints saved!');
+```
+
+### Benefits of Checkpointing
+
+- **Resume Training**: Continue from any checkpoint if interrupted
+- **Model Comparison**: Compare performance at different epochs
+- **Best Model Selection**: Choose the checkpoint with lowest loss
+- **Progress Monitoring**: Track training progress in real-time
+- **Safety**: Never lose training progress due to crashes
+
+---
+
 ## Loading and Using a Trained Model
 
 ### Load Model

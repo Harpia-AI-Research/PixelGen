@@ -17,6 +17,7 @@ Complete reference for all PixelGen classes, functions, and types.
   - [PixelGenModel](#pixelgenmodel)
 - [Training](#training)
   - [Trainer](#trainer)
+  - [Training Callbacks](#training-callbacks)
   - [Optimizers](#optimizers)
   - [Loss Functions](#loss-functions-1)
 - [Data](#data)
@@ -442,10 +443,38 @@ const trainer = new Trainer(model, {
 ##### train
 
 ```typescript
-trainer.train(dataset: ImageDataset): TrainingStats[]
+trainer.train(dataset: ImageDataset, callbacks?: TrainingCallbacks): TrainingStats[]
 ```
 
-Train the model on a dataset.
+Train the model on a dataset with optional callbacks for real-time monitoring.
+
+**Parameters:**
+- `dataset`: The dataset to train on
+- `callbacks`: Optional callback functions for real-time monitoring
+
+**TrainingCallbacks Interface:**
+```typescript
+interface TrainingCallbacks {
+  onEpoch?: (epoch: number, loss: number, model: PixelGenModel) => void;
+  onBatch?: (epoch: number, batch: number, loss: number, model: PixelGenModel) => void;
+}
+```
+
+**Real-time Checkpointing Example:**
+```typescript
+const trainer = new Trainer(model, config);
+
+// Save checkpoint every 10 epochs
+const checkpointCallback = (epoch: number, loss: number, currentModel: PixelGenModel) => {
+  if (epoch % 10 === 0) {
+    const path = `checkpoint-${epoch.toString().padStart(3, '0')}.pgm`;
+    saveModel(currentModel, path, hyperparameters);
+    console.log(`💾 Checkpoint saved: epoch-${epoch} (loss: ${loss.toFixed(6)})`);
+  }
+};
+
+const stats = trainer.train(dataset, { onEpoch: checkpointCallback });
+```
 
 **Returns:** Array of statistics for each epoch:
 ```typescript
@@ -473,6 +502,80 @@ trainer.getStats(): TrainingStats[]
 ```
 
 Get training history.
+
+---
+
+### Training Callbacks
+
+Real-time monitoring and checkpointing during training.
+
+#### TrainingCallbacks Interface
+
+```typescript
+interface TrainingCallbacks {
+  onEpoch?: (epoch: number, loss: number, model: PixelGenModel) => void;
+  onBatch?: (epoch: number, batch: number, loss: number, model: PixelGenModel) => void;
+}
+```
+
+**Parameters:**
+- `onEpoch`: Called after each epoch completes
+- `onBatch`: Called after each batch processes
+
+#### Common Patterns
+
+##### Real-time Checkpointing
+
+```typescript
+const checkpointCallback = (epoch: number, loss: number, model: PixelGenModel) => {
+  if (epoch % 10 === 0) {
+    const filename = `model-checkpoint-${epoch.toString().padStart(3, '0')}.pgm`;
+    saveModel(model, filename, hyperparameters);
+    console.log(`💾 Checkpoint saved: epoch-${epoch} (loss: ${loss.toFixed(6)})`);
+  }
+};
+
+trainer.train(dataset, { onEpoch: checkpointCallback });
+```
+
+##### Progress Monitoring
+
+```typescript
+const progressCallback = (epoch: number, loss: number) => {
+  if (epoch % 5 === 0) {
+    const improvement = epoch > 5 ? 
+      ((previousLoss - loss) / previousLoss * 100).toFixed(1) : 0;
+    console.log(`Epoch ${epoch}: Loss ${loss.toFixed(6)} (${improvement}% improvement)`);
+  }
+};
+
+trainer.train(dataset, { onEpoch: progressCallback });
+```
+
+##### Early Stopping
+
+```typescript
+let bestLoss = Infinity;
+let patience = 5;
+let noImprovementCount = 0;
+
+const earlyStopCallback = (epoch: number, loss: number) => {
+  if (loss < bestLoss) {
+    bestLoss = loss;
+    noImprovementCount = 0;
+    // Save best model
+    saveModel(model, 'best-model.pgm', hyperparameters);
+  } else {
+    noImprovementCount++;
+    if (noImprovementCount >= patience) {
+      console.log(`Early stopping at epoch ${epoch} (no improvement for ${patience} epochs)`);
+      // Note: Actual early stopping requires trainer modification
+    }
+  }
+};
+
+trainer.train(dataset, { onEpoch: earlyStopCallback });
+```
 
 ---
 
