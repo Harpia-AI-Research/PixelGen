@@ -110,7 +110,7 @@ async function main() {
   console.log('This will take a few minutes. Watch for checkpoint saves!\n');
   
   const startTime = Date.now();
-  const stats = trainer.train(dataset, { onEpoch: combinedCallback });
+  const stats = await trainer.train(dataset, { onEpoch: combinedCallback });
   const totalTime = Date.now() - startTime;
 
   console.log('\n============================================');
@@ -194,7 +194,7 @@ async function main() {
     // Quick test inference
     const testInput = dataset.getBatch(1, 0);
     if (testInput) {
-      const output = loadedModel.forward(testInput);
+      const output = await loadedModel.forward(testInput);
       console.log(`\nInference test:`);
       console.log(`  Input shape: [${testInput.shape.join(', ')}]`);
       console.log(`  Output shape: [${output.shape.join(', ')}]`);

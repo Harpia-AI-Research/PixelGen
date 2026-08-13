@@ -12,6 +12,8 @@ export class Tensor {
   public _backward?: () => void;
   public _prev: Set<Tensor>;
 
+  static backend?: any;
+
   constructor(
     data: number[] | Float32Array | number[][],
     shape?: number[],
@@ -302,17 +304,15 @@ export class Tensor {
   /**
    * Backward pass for autograd
    */
-  backward(): void {
+  async backward(): Promise<void> {
     if (!this.requiresGrad) {
       throw new Error('This tensor does not require gradients');
     }
 
-    // Initialize gradient if not set
     if (!this.grad) {
       this.grad = Tensor.onesLike(this);
     }
 
-    // Topological sort
     const topo: Tensor[] = [];
     const visited = new Set<Tensor>();
     
@@ -326,13 +326,12 @@ export class Tensor {
     
     buildTopo(this);
 
-    // Backward pass
     topo.reverse();
-    topo.forEach(tensor => {
+    for (const tensor of topo) {
       if (tensor._backward) {
-        tensor._backward();
+        await tensor._backward();
       }
-    });
+    }
   }
 
   /**

@@ -72,7 +72,7 @@ async function main() {
   console.log('This may take a while depending on your dataset size...\n');
   
   const trainer = new Trainer(model, trainingConfig);
-  const stats = trainer.train(dataset);
+  const stats = await trainer.train(dataset);
   console.log('');
 
   // Step 5: Display training results

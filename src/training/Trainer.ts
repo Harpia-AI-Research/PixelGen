@@ -3,6 +3,7 @@ import { ImageDataset } from '../data/ImageLoader';
 import { Optimizer, Adam } from './Optimizer';
 import { mseLoss, pixelArtLoss, mseLossGrad, pixelArtLossGrad } from './Loss';
 import { Tensor } from '../core/Tensor';
+import { Backend } from '../core/backend';
 
 export interface TrainingConfig {
   epochs: number;
@@ -11,6 +12,7 @@ export interface TrainingConfig {
   optimizer: 'sgd' | 'adam';
   lossFunction: 'mse' | 'pixelart';
   verbose: boolean;
+  backend?: Backend;
 }
 
 export interface TrainingCallbacks {
@@ -24,9 +26,6 @@ export interface TrainingStats {
   time: number;
 }
 
-/**
- * Trainer class - handles the training loop
- */
 export class Trainer {
   private model: PixelGenModel;
   private optimizer: Optimizer;
@@ -37,19 +36,14 @@ export class Trainer {
     this.model = model;
     this.config = config;
 
-    // Initialize optimizer
     if (config.optimizer === 'adam') {
       this.optimizer = new Adam(config.learningRate);
     } else {
-      // SGD not yet implemented in this simplified version
       this.optimizer = new Adam(config.learningRate);
     }
   }
 
-  /**
-   * Train the model with optional callbacks
-   */
-  train(dataset: ImageDataset, callbacks?: TrainingCallbacks): TrainingStats[] {
+  async train(dataset: ImageDataset, callbacks?: TrainingCallbacks): Promise<TrainingStats[]> {
     console.log('Starting training...');
     console.log(`Epochs: ${this.config.epochs}`);
     console.log(`Batch size: ${this.config.batchSize}`);
@@ -62,33 +56,25 @@ export class Trainer {
       let epochLoss = 0;
       let numBatches = 0;
 
-      // Shuffle dataset at the start of each epoch
       dataset.shuffle();
 
-      // Iterate through batches
       for (let i = 0; i < dataset.size(); i += this.config.batchSize) {
         const batch = dataset.getBatch(this.config.batchSize, i);
         if (!batch) break;
 
-        // Zero gradients before forward pass
         this.model.zeroGrad();
 
-        // Forward pass
-        const output = this.model.forward(batch);
+        const output = await this.model.forward(batch);
 
-        // Calculate loss
         const loss = this.calculateLoss(output, batch);
         epochLoss += loss;
         numBatches++;
 
-        // Backward pass - compute gradients
         const outputGrad = this.calculateLossGrad(output, batch);
         output.grad = outputGrad;
         
-        // Backpropagate through the model
-        output.backward();
+        await output.backward();
 
-        // Update parameters using optimizer
         this.optimizer.step(this.model.parameters());
       }
 
@@ -108,7 +94,6 @@ export class Trainer {
         );
       }
 
-      // Call epoch callback if provided
       if (callbacks?.onEpoch) {
         callbacks.onEpoch(epoch + 1, avgLoss, this.model);
       }
@@ -135,10 +120,7 @@ export class Trainer {
     }
   }
 
-  /**
-   * Evaluate model on dataset
-   */
-  evaluate(dataset: ImageDataset): number {
+  async evaluate(dataset: ImageDataset): Promise<number> {
     let totalLoss = 0;
     let numBatches = 0;
 
@@ -146,7 +128,7 @@ export class Trainer {
       const batch = dataset.getBatch(this.config.batchSize, i);
       if (!batch) break;
 
-      const output = this.model.forward(batch);
+      const output = await this.model.forward(batch);
       const loss = this.calculateLoss(output, batch);
       
       totalLoss += loss;
@@ -156,17 +138,11 @@ export class Trainer {
     return totalLoss / numBatches;
   }
 
-  /**
-   * Get training statistics
-   */
   getStats(): TrainingStats[] {
     return [...this.stats];
   }
 }
 
-/**
- * Default training configuration
- */
 export const DEFAULT_TRAINING_CONFIG: TrainingConfig = {
   epochs: 50,
   batchSize: 4,

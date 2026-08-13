@@ -36,7 +36,7 @@ async function main() {
   });
   
   console.log('Training...');
-  const initialStats = trainer.train(trainDataset);
+  const initialStats = await trainer.train(trainDataset);
   console.log(`Initial training complete!`);
   console.log(`Final loss: ${initialStats[initialStats.length - 1].loss.toFixed(6)}`);
   console.log('');
@@ -85,7 +85,7 @@ async function main() {
     verbose: false,
   });
   
-  const testLoss = evaluator.evaluate(testDataset);
+  const testLoss = await evaluator.evaluate(testDataset);
   console.log(`Test loss: ${testLoss.toFixed(6)}`);
   console.log('');
 
@@ -108,7 +108,7 @@ async function main() {
   });
   
   console.log('Fine-tuning...');
-  const finetuneStats = finetuneTrainer.train(finetuneDataset);
+  const finetuneStats = await finetuneTrainer.train(finetuneDataset);
   console.log(`Fine-tuning complete!`);
   console.log(`Final loss: ${finetuneStats[finetuneStats.length - 1].loss.toFixed(6)}`);
   console.log('');
@@ -139,7 +139,7 @@ async function main() {
   console.log('Input image shape:', testImage.shape);
   
   // Run forward pass
-  const output = loadedModel.forward(testImage);
+  const output = await loadedModel.forward(testImage);
   console.log('Output image shape:', output.shape);
   
   // Get some statistics

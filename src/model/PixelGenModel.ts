@@ -2,20 +2,15 @@ import { Tensor } from '../core/Tensor';
 import { relu } from '../core/activations';
 import { Conv2D } from '../layers/Conv2D';
 import { MaxPool2D, Upsample2D } from '../layers/Pooling';
+import { Backend } from '../core/backend';
 
-/**
- * PixelGen Model - Fixed architecture for v1
- * Simple convolutional autoencoder optimized for PixelArt
- */
 export class PixelGenModel {
-  // Encoder
   private conv1: Conv2D;
   private pool1: MaxPool2D;
   private conv2: Conv2D;
   private pool2: MaxPool2D;
   private conv3: Conv2D;
 
-  // Decoder
   private upsample1: Upsample2D;
   private conv4: Conv2D;
   private upsample2: Upsample2D;
@@ -25,65 +20,52 @@ export class PixelGenModel {
   private inputChannels: number;
   private outputChannels: number;
 
-  constructor(inputChannels: number = 3, outputChannels: number = 3) {
+  constructor(inputChannels: number = 3, outputChannels: number = 3, backend?: Backend) {
     this.inputChannels = inputChannels;
     this.outputChannels = outputChannels;
 
-    // Encoder: progressively reduce spatial dimensions, increase channels
-    this.conv1 = new Conv2D(inputChannels, 32, 3, 1, 1); // 32x32 -> 32x32
-    this.pool1 = new MaxPool2D(2, 2); // 32x32 -> 16x16
+    this.conv1 = new Conv2D(inputChannels, 32, 3, 1, 1, backend);
+    this.pool1 = new MaxPool2D(2, 2, backend);
     
-    this.conv2 = new Conv2D(32, 64, 3, 1, 1); // 16x16 -> 16x16
-    this.pool2 = new MaxPool2D(2, 2); // 16x16 -> 8x8
+    this.conv2 = new Conv2D(32, 64, 3, 1, 1, backend);
+    this.pool2 = new MaxPool2D(2, 2, backend);
     
-    this.conv3 = new Conv2D(64, 128, 3, 1, 1); // 8x8 -> 8x8 (bottleneck)
+    this.conv3 = new Conv2D(64, 128, 3, 1, 1, backend);
 
-    // Decoder: progressively increase spatial dimensions, reduce channels
-    this.upsample1 = new Upsample2D(2); // 8x8 -> 16x16
-    this.conv4 = new Conv2D(128, 64, 3, 1, 1); // 16x16 -> 16x16
+    this.upsample1 = new Upsample2D(2, backend);
+    this.conv4 = new Conv2D(128, 64, 3, 1, 1, backend);
     
-    this.upsample2 = new Upsample2D(2); // 16x16 -> 32x32
-    this.conv5 = new Conv2D(64, 32, 3, 1, 1); // 32x32 -> 32x32
+    this.upsample2 = new Upsample2D(2, backend);
+    this.conv5 = new Conv2D(64, 32, 3, 1, 1, backend);
     
-    this.convOut = new Conv2D(32, outputChannels, 3, 1, 1); // 32x32 -> 32x32
+    this.convOut = new Conv2D(32, outputChannels, 3, 1, 1, backend);
   }
 
-  /**
-   * Forward pass through the model
-   * Input: [batch, channels, height, width]
-   * Output: [batch, channels, height, width]
-   */
-  forward(input: Tensor): Tensor {
-    // Encoder
-    let x = this.conv1.forward(input);
+  async forward(input: Tensor): Promise<Tensor> {
+    let x = await this.conv1.forward(input);
     x = relu(x);
-    x = this.pool1.forward(x);
+    x = await this.pool1.forward(x);
 
-    x = this.conv2.forward(x);
+    x = await this.conv2.forward(x);
     x = relu(x);
-    x = this.pool2.forward(x);
+    x = await this.pool2.forward(x);
 
-    x = this.conv3.forward(x);
-    x = relu(x); // Bottleneck
-
-    // Decoder
-    x = this.upsample1.forward(x);
-    x = this.conv4.forward(x);
+    x = await this.conv3.forward(x);
     x = relu(x);
 
-    x = this.upsample2.forward(x);
-    x = this.conv5.forward(x);
+    x = await this.upsample1.forward(x);
+    x = await this.conv4.forward(x);
     x = relu(x);
 
-    x = this.convOut.forward(x);
-    // Note: No activation on output - we'll apply sigmoid during training if needed
+    x = await this.upsample2.forward(x);
+    x = await this.conv5.forward(x);
+    x = relu(x);
+
+    x = await this.convOut.forward(x);
 
     return x;
   }
 
-  /**
-   * Get all trainable parameters
-   */
   parameters(): Tensor[] {
     return [
       ...this.conv1.parameters(),
@@ -95,9 +77,6 @@ export class PixelGenModel {
     ];
   }
 
-  /**
-   * Zero all gradients
-   */
   zeroGrad(): void {
     this.conv1.zeroGrad();
     this.conv2.zeroGrad();
@@ -107,16 +86,13 @@ export class PixelGenModel {
     this.convOut.zeroGrad();
   }
 
-  /**
-   * Get model metadata for saving
-   */
   getMetadata(): ModelMetadata {
     return {
       version: '1.0.0',
       architecture: 'pixelgen-autoencoder-v1',
       inputChannels: this.inputChannels,
       outputChannels: this.outputChannels,
-      inputSize: 32, // Fixed for v1
+      inputSize: 32,
       layers: [
         { type: 'conv2d', in: this.inputChannels, out: 32, kernel: 3 },
         { type: 'maxpool2d', size: 2 },

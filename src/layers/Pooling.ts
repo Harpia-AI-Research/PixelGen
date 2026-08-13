@@ -1,26 +1,54 @@
 import { Tensor } from '../core/Tensor';
+import { Backend } from '../core/backend';
 
-/**
- * Max Pooling 2D layer
- */
 export class MaxPool2D {
   private poolSize: number;
   private stride: number;
+  private backend?: Backend;
 
-  constructor(poolSize: number = 2, stride?: number) {
+  constructor(poolSize: number = 2, stride?: number, backend?: Backend) {
     this.poolSize = poolSize;
     this.stride = stride || poolSize;
+    this.backend = backend;
   }
 
-  /**
-   * Forward pass
-   * Input shape: [batch, channels, height, width]
-   */
-  forward(input: Tensor): Tensor {
+  async forward(input: Tensor): Promise<Tensor> {
     if (input.shape.length !== 4) {
       throw new Error(`MaxPool2D expects 4D input, got ${input.shape}`);
     }
 
+    const useBackend = this.backend || Tensor.backend;
+
+    let result: { output: Tensor; argmax?: Int32Array };
+
+    if (useBackend) {
+      result = await useBackend.poolForward(input, this.poolSize, this.stride);
+    } else {
+      result = this.computeForward(input);
+    }
+
+    const outputTensor = result.output;
+    const argmax = result.argmax;
+
+    if (input.requiresGrad) {
+      outputTensor._prev.add(input);
+
+      outputTensor._backward = () => {
+        if (!outputTensor.grad) return;
+        if (!input.grad) input.grad = Tensor.zerosLike(input);
+
+        if (argmax) {
+          for (let i = 0; i < outputTensor.grad.data.length; i++) {
+            input.grad.data[argmax[i]] += outputTensor.grad.data[i];
+          }
+        }
+      };
+    }
+
+    return outputTensor;
+  }
+
+  private computeForward(input: Tensor): { output: Tensor; argmax: Int32Array } {
     const [batch, channels, height, width] = input.shape;
     const outHeight = Math.floor((height - this.poolSize) / this.stride) + 1;
     const outWidth = Math.floor((width - this.poolSize) / this.stride) + 1;
@@ -36,7 +64,6 @@ export class MaxPool2D {
             let max = -Infinity;
             let maxIdx = 0;
 
-            // Find max in pool window
             for (let ph = 0; ph < this.poolSize; ph++) {
               for (let pw = 0; pw < this.poolSize; pw++) {
                 const ih = oh * this.stride + ph;
@@ -59,23 +86,7 @@ export class MaxPool2D {
       }
     }
 
-    const result = new Tensor(output, [batch, channels, outHeight, outWidth], input.requiresGrad);
-
-    if (input.requiresGrad) {
-      result._prev.add(input);
-
-      result._backward = () => {
-        if (!result.grad) return;
-        if (!input.grad) input.grad = Tensor.zerosLike(input);
-
-        // Route each output gradient to the position that produced the max
-        for (let i = 0; i < result.grad.data.length; i++) {
-          input.grad.data[argmax[i]] += result.grad.data[i];
-        }
-      };
-    }
-
-    return result;
+    return { output: new Tensor(output, [batch, channels, outHeight, outWidth], input.requiresGrad), argmax };
   }
 
   parameters(): Tensor[] {
@@ -87,73 +98,45 @@ export class MaxPool2D {
   }
 }
 
-/**
- * Average Pooling 2D layer
- */
 export class AvgPool2D {
   private poolSize: number;
   private stride: number;
+  private backend?: Backend;
 
-  constructor(poolSize: number = 2, stride?: number) {
+  constructor(poolSize: number = 2, stride?: number, backend?: Backend) {
     this.poolSize = poolSize;
     this.stride = stride || poolSize;
+    this.backend = backend;
   }
 
-  forward(input: Tensor): Tensor {
+  async forward(input: Tensor): Promise<Tensor> {
     if (input.shape.length !== 4) {
       throw new Error(`AvgPool2D expects 4D input, got ${input.shape}`);
     }
 
-    const [batch, channels, height, width] = input.shape;
-    const outHeight = Math.floor((height - this.poolSize) / this.stride) + 1;
-    const outWidth = Math.floor((width - this.poolSize) / this.stride) + 1;
-
-    const outputSize = batch * channels * outHeight * outWidth;
-    const output = new Float32Array(outputSize);
-
-    const poolArea = this.poolSize * this.poolSize;
-
-    for (let b = 0; b < batch; b++) {
-      for (let c = 0; c < channels; c++) {
-        for (let oh = 0; oh < outHeight; oh++) {
-          for (let ow = 0; ow < outWidth; ow++) {
-            let sum = 0;
-
-            // Sum pool window
-            for (let ph = 0; ph < this.poolSize; ph++) {
-              for (let pw = 0; pw < this.poolSize; pw++) {
-                const ih = oh * this.stride + ph;
-                const iw = ow * this.stride + pw;
-
-                const inputIdx = b * channels * height * width + c * height * width + ih * width + iw;
-                sum += input.data[inputIdx];
-              }
-            }
-
-            const outputIdx = b * channels * outHeight * outWidth + c * outHeight * outWidth + oh * outWidth + ow;
-            output[outputIdx] = sum / poolArea;
-          }
-        }
-      }
-    }
-
-    const result = new Tensor(output, [batch, channels, outHeight, outWidth], input.requiresGrad);
+    const useBackend = this.backend || Tensor.backend;
+    const output: Tensor = useBackend
+      ? (await useBackend.avgPoolForward(input, this.poolSize, this.stride)).output
+      : this.computeForward(input);
 
     if (input.requiresGrad) {
-      result._prev.add(input);
+      output._prev.add(input);
 
-      result._backward = () => {
-        if (!result.grad) return;
+      output._backward = () => {
+        if (!output.grad) return;
         if (!input.grad) input.grad = Tensor.zerosLike(input);
-        const scale = 1 / poolArea;
 
-        // Distribute each output gradient equally across the pool window
+        const scale = 1 / (this.poolSize * this.poolSize);
+        const [batch, channels, height, width] = input.shape;
+        const outHeight = Math.floor((height - this.poolSize) / this.stride) + 1;
+        const outWidth = Math.floor((width - this.poolSize) / this.stride) + 1;
+
         for (let b = 0; b < batch; b++) {
           for (let c = 0; c < channels; c++) {
             for (let oh = 0; oh < outHeight; oh++) {
               for (let ow = 0; ow < outWidth; ow++) {
                 const outputIdx = b * channels * outHeight * outWidth + c * outHeight * outWidth + oh * outWidth + ow;
-                const g = result.grad.data[outputIdx];
+                const g = output.grad.data[outputIdx];
 
                 for (let ph = 0; ph < this.poolSize; ph++) {
                   for (let pw = 0; pw < this.poolSize; pw++) {
@@ -171,7 +154,42 @@ export class AvgPool2D {
       };
     }
 
-    return result;
+    return output;
+  }
+
+  private computeForward(input: Tensor): Tensor {
+    const [batch, channels, height, width] = input.shape;
+    const outHeight = Math.floor((height - this.poolSize) / this.stride) + 1;
+    const outWidth = Math.floor((width - this.poolSize) / this.stride) + 1;
+
+    const outputSize = batch * channels * outHeight * outWidth;
+    const output = new Float32Array(outputSize);
+    const poolArea = this.poolSize * this.poolSize;
+
+    for (let b = 0; b < batch; b++) {
+      for (let c = 0; c < channels; c++) {
+        for (let oh = 0; oh < outHeight; oh++) {
+          for (let ow = 0; ow < outWidth; ow++) {
+            let sum = 0;
+
+            for (let ph = 0; ph < this.poolSize; ph++) {
+              for (let pw = 0; pw < this.poolSize; pw++) {
+                const ih = oh * this.stride + ph;
+                const iw = ow * this.stride + pw;
+
+                const inputIdx = b * channels * height * width + c * height * width + ih * width + iw;
+                sum += input.data[inputIdx];
+              }
+            }
+
+            const outputIdx = b * channels * outHeight * outWidth + c * outHeight * outWidth + oh * outWidth + ow;
+            output[outputIdx] = sum / poolArea;
+          }
+        }
+      }
+    }
+
+    return new Tensor(output, [batch, channels, outHeight, outWidth], input.requiresGrad);
   }
 
   parameters(): Tensor[] {
@@ -183,22 +201,58 @@ export class AvgPool2D {
   }
 }
 
-/**
- * Upsampling layer (nearest neighbor)
- * Used for decoder part of autoencoder
- */
 export class Upsample2D {
   private scale: number;
+  private backend?: Backend;
 
-  constructor(scale: number = 2) {
+  constructor(scale: number = 2, backend?: Backend) {
     this.scale = scale;
+    this.backend = backend;
   }
 
-  forward(input: Tensor): Tensor {
+  async forward(input: Tensor): Promise<Tensor> {
     if (input.shape.length !== 4) {
       throw new Error(`Upsample2D expects 4D input, got ${input.shape}`);
     }
 
+    const useBackend = this.backend || Tensor.backend;
+    const output: Tensor = useBackend
+      ? (await useBackend.upsampleForward(input, this.scale)).output
+      : this.computeForward(input);
+
+    if (input.requiresGrad) {
+      output._prev.add(input);
+
+      output._backward = () => {
+        if (!output.grad) return;
+        if (!input.grad) input.grad = Tensor.zerosLike(input);
+
+        const [batch, channels, height, width] = input.shape;
+        const outHeight = height * this.scale;
+        const outWidth = width * this.scale;
+
+        for (let b = 0; b < batch; b++) {
+          for (let c = 0; c < channels; c++) {
+            for (let oh = 0; oh < outHeight; oh++) {
+              for (let ow = 0; ow < outWidth; ow++) {
+                const ih = Math.floor(oh / this.scale);
+                const iw = Math.floor(ow / this.scale);
+
+                const inputIdx = b * channels * height * width + c * height * width + ih * width + iw;
+                const outputIdx = b * channels * outHeight * outWidth + c * outHeight * outWidth + oh * outWidth + ow;
+
+                input.grad.data[inputIdx] += output.grad.data[outputIdx];
+              }
+            }
+          }
+        }
+      };
+    }
+
+    return output;
+  }
+
+  private computeForward(input: Tensor): Tensor {
     const [batch, channels, height, width] = input.shape;
     const outHeight = height * this.scale;
     const outWidth = width * this.scale;
@@ -210,7 +264,6 @@ export class Upsample2D {
       for (let c = 0; c < channels; c++) {
         for (let oh = 0; oh < outHeight; oh++) {
           for (let ow = 0; ow < outWidth; ow++) {
-            // Nearest neighbor
             const ih = Math.floor(oh / this.scale);
             const iw = Math.floor(ow / this.scale);
 
@@ -223,35 +276,7 @@ export class Upsample2D {
       }
     }
 
-    const result = new Tensor(output, [batch, channels, outHeight, outWidth], input.requiresGrad);
-
-    if (input.requiresGrad) {
-      result._prev.add(input);
-
-      result._backward = () => {
-        if (!result.grad) return;
-        if (!input.grad) input.grad = Tensor.zerosLike(input);
-
-        // Each output pixel routes its gradient to the source (nearest neighbor)
-        for (let b = 0; b < batch; b++) {
-          for (let c = 0; c < channels; c++) {
-            for (let oh = 0; oh < outHeight; oh++) {
-              for (let ow = 0; ow < outWidth; ow++) {
-                const ih = Math.floor(oh / this.scale);
-                const iw = Math.floor(ow / this.scale);
-
-                const inputIdx = b * channels * height * width + c * height * width + ih * width + iw;
-                const outputIdx = b * channels * outHeight * outWidth + c * outHeight * outWidth + oh * outWidth + ow;
-
-                input.grad.data[inputIdx] += result.grad.data[outputIdx];
-              }
-            }
-          }
-        }
-      };
-    }
-
-    return result;
+    return new Tensor(output, [batch, channels, outHeight, outWidth], input.requiresGrad);
   }
 
   parameters(): Tensor[] {

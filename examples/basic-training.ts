@@ -48,7 +48,7 @@ async function main() {
   // Step 4: Create trainer and train
   console.log('Step 4: Training model...');
   const trainer = new Trainer(model, trainingConfig);
-  const stats = trainer.train(dataset);
+  const stats = await trainer.train(dataset);
   console.log('');
 
   // Step 5: Display training results

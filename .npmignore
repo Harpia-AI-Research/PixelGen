@@ -38,6 +38,12 @@ test/
 # Assets (not needed for usage)
 Assets/
 
+# WASM build artifacts (keep pkg/ for WASM backend)
+wasm/
+!pkg/
+pkg/src/
+pkg/target/
+
 # Keep these
 !README.md
 !LICENSE
