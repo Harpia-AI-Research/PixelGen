@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.3] - 2026-08-14
+
+### Added
+- Complete test suite (uses Node's built-in `node:test`, no new dependencies)
+  - Covers Tensor autograd, layers, loss functions, optimizers, Trainer, and `.pgm` save/load round-trip
+  - Gradients verified against numerical finite differences
+- `tsconfig.test.json` for isolated test compilation
+- `npm test` script
+
+### Changed
+- `Trainer` now actually uses the **SGD** optimizer when `optimizer: 'sgd'` is set (previously fell back to Adam)
+- `mae` and `bce` loss functions enabled in the Trainer, with new `maeLossGrad`/`bceLossGrad`
+- `softmax` now normalizes per-sample (last dimension) and implements a proper autograd backward pass
+- `Tensor.add` supports right-aligned broadcasting (e.g. `[batch, out] + [out]` bias), fixing the `Dense` layer for batch > 1
+
+### Fixed
+- Conv2D Xavier initialization now uses correct fan_in/fan_out for conv filters
+- Edge-loss gradient subgradients correctly return 0 at non-differentiable points
+
+---
+
 ## [1.1.2] - 2026-08-11
 
 ### Added
@@ -103,5 +124,6 @@ This is the first public version of PixelGen. The architecture is fixed and focu
 
 ---
 
+[1.1.3]: https://github.com/Harpia-AI-Research/PixelGen/releases/tag/v1.1.3
 [1.1.2]: https://github.com/Harpia-AI-Research/PixelGen/releases/tag/v1.1.2
 [0.1.0]: https://github.com/Harpia-AI-Research/PixelGen/releases/tag/v0.1.0

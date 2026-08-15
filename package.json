@@ -1,6 +1,6 @@
 {
   "name": "pixelgen",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "A fully functional Machine Learning framework for PixelArt generation, built from scratch in TypeScript with complete backpropagation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
