@@ -30,7 +30,9 @@ export class Conv2D {
     const filterSize = outChannels * inChannels * kernelSize * kernelSize;
     this.filters = Tensor.xavier(
       [outChannels, inChannels, kernelSize, kernelSize],
-      true
+      true,
+      inChannels * kernelSize * kernelSize,
+      outChannels * kernelSize * kernelSize
     );
     this.bias = Tensor.zeros([outChannels], true);
   }

@@ -17,7 +17,7 @@ export { PixelGenModel, ModelMetadata } from './model/PixelGenModel';
 
 // Training
 export { SGD, Adam, Optimizer } from './training/Optimizer';
-export { mseLoss, maeLoss, bceLoss, pixelArtLoss, mseLossGrad, pixelArtLossGrad } from './training/Loss';
+export { mseLoss, maeLoss, bceLoss, pixelArtLoss, mseLossGrad, maeLossGrad, bceLossGrad, pixelArtLossGrad } from './training/Loss';
 export { Trainer, TrainingConfig, TrainingStats, DEFAULT_TRAINING_CONFIG } from './training/Trainer';
 
 // Data

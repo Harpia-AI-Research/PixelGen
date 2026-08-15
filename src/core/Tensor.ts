@@ -128,6 +128,9 @@ export class Tensor {
 
   /**
    * Element-wise addition
+   * Supports right-aligned broadcasting: `other` may be a Tensor whose
+   * trailing dimensions match a suffix of this tensor's shape (e.g. adding
+   * a bias of shape [out] to a [batch, out] tensor).
    */
   add(other: Tensor | number): Tensor {
     const result = new Tensor(
@@ -140,37 +143,100 @@ export class Tensor {
       for (let i = 0; i < this.data.length; i++) {
         result.data[i] = this.data[i] + other;
       }
-    } else {
-      if (!this.shapesMatch(this.shape, other.shape)) {
-        throw new Error(`Shape mismatch: ${this.shape} vs ${other.shape}`);
+
+      if (this.requiresGrad) {
+        result._prev.add(this);
+
+        result._backward = () => {
+          if (!result.grad) return;
+          if (!this.grad) this.grad = Tensor.zerosLike(this);
+
+          for (let i = 0; i < this.data.length; i++) {
+            this.grad.data[i] += result.grad.data[i];
+          }
+        };
       }
-      for (let i = 0; i < this.data.length; i++) {
-        result.data[i] = this.data[i] + other.data[i];
-      }
+
+      return result;
     }
 
-    if (this.requiresGrad) {
+    // Tensor operand: check right-aligned broadcast compatibility
+    const broadcastOffset = this.shape.length - other.shape.length;
+    const broadcastable =
+      broadcastOffset >= 0 &&
+      other.shape.every((d, i) => d === this.shape[broadcastOffset + i]);
+
+    if (!broadcastable) {
+      throw new Error(`Shape mismatch: ${this.shape} vs ${other.shape}`);
+    }
+
+    const sameShape = broadcastOffset === 0 && other.shape.length === this.shape.length;
+
+    // Precompute index mapping for broadcast case
+    const mapping = sameShape ? null : this.buildBroadcastMapping(this.shape, other.shape, broadcastOffset);
+
+    for (let i = 0; i < this.data.length; i++) {
+      result.data[i] = this.data[i] + other.data[mapping ? mapping[i] : i];
+    }
+
+    if (this.requiresGrad || other.requiresGrad) {
       result._prev.add(this);
-      if (other instanceof Tensor) result._prev.add(other);
-      
+      result._prev.add(other);
+
       result._backward = () => {
         if (!result.grad) return;
-        if (!this.grad) this.grad = Tensor.zerosLike(this);
-        
-        for (let i = 0; i < this.data.length; i++) {
-          this.grad.data[i] += result.grad.data[i];
+
+        if (this.requiresGrad) {
+          if (!this.grad) this.grad = Tensor.zerosLike(this);
+          for (let i = 0; i < this.data.length; i++) {
+            this.grad.data[i] += result.grad.data[i];
+          }
         }
-        
-        if (other instanceof Tensor && other.requiresGrad) {
+
+        if (other.requiresGrad) {
           if (!other.grad) other.grad = Tensor.zerosLike(other);
-          for (let i = 0; i < other.data.length; i++) {
-            other.grad.data[i] += result.grad.data[i];
+          for (let i = 0; i < this.data.length; i++) {
+            other.grad.data[mapping ? mapping[i] : i] += result.grad.data[i];
           }
         }
       };
     }
 
     return result;
+  }
+
+  private buildBroadcastMapping(
+    thisShape: number[],
+    otherShape: number[],
+    offset: number
+  ): Int32Array {
+    const thisStrides = Tensor.strides(thisShape);
+    const otherStrides = Tensor.strides(otherShape);
+    const mapping = new Int32Array(this.data.length);
+
+    for (let i = 0; i < this.data.length; i++) {
+      let rem = i;
+      let oi = 0;
+      for (let d = 0; d < thisShape.length; d++) {
+        const coord = Math.floor(rem / thisStrides[d]);
+        rem %= thisStrides[d];
+        if (d >= offset) {
+          oi += coord * otherStrides[d - offset];
+        }
+      }
+      mapping[i] = oi;
+    }
+    return mapping;
+  }
+
+  private static strides(shape: number[]): number[] {
+    const strides = new Array<number>(shape.length);
+    let s = 1;
+    for (let d = shape.length - 1; d >= 0; d--) {
+      strides[d] = s;
+      s *= shape[d];
+    }
+    return strides;
   }
 
   /**
@@ -381,12 +447,19 @@ export class Tensor {
 
   /**
    * Xavier/Glorot initialization
+   * For N-D tensors (e.g. conv filters), fanIn/fanOut can be supplied explicitly;
+   * otherwise they default to the first two dimensions of the shape.
    */
-  static xavier(shape: number[], requiresGrad: boolean = false): Tensor {
+  static xavier(
+    shape: number[],
+    requiresGrad: boolean = false,
+    fanIn?: number,
+    fanOut?: number
+  ): Tensor {
     const size = shape.reduce((a, b) => a * b, 1);
-    const fanIn = shape[0];
-    const fanOut = shape.length > 1 ? shape[1] : 1;
-    const limit = Math.sqrt(6 / (fanIn + fanOut));
+    const fin = fanIn ?? shape[0];
+    const fout = fanOut ?? (shape.length > 1 ? shape[1] : 1);
+    const limit = Math.sqrt(6 / (fin + fout));
     
     const data = new Float32Array(size);
     for (let i = 0; i < size; i++) {

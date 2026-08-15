@@ -3,6 +3,7 @@ node_modules/
 
 # Build output
 dist/
+dist-test/
 
 # Model files (usuários devem gerar seus próprios modelos)
 *.pgm

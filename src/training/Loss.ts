@@ -48,6 +48,26 @@ export function maeLoss(predicted: Tensor, target: Tensor): number {
 }
 
 /**
+ * MAE Loss gradient: dL/dPredicted = sign(predicted - target) / N
+ * Uses a subgradient of 0 when the difference is exactly 0.
+ */
+export function maeLossGrad(predicted: Tensor, target: Tensor): Tensor {
+  if (predicted.data.length !== target.data.length) {
+    throw new Error('Predicted and target tensors must have the same size');
+  }
+
+  const grad = Tensor.zerosLike(predicted);
+  const scale = 1.0 / predicted.data.length;
+
+  for (let i = 0; i < predicted.data.length; i++) {
+    const diff = predicted.data[i] - target.data[i];
+    grad.data[i] = scale * (diff > 0 ? 1 : diff < 0 ? -1 : 0);
+  }
+
+  return grad;
+}
+
+/**
  * Binary Cross Entropy loss
  */
 export function bceLoss(predicted: Tensor, target: Tensor): number {
@@ -64,6 +84,27 @@ export function bceLoss(predicted: Tensor, target: Tensor): number {
   }
 
   return sum / predicted.data.length;
+}
+
+/**
+ * BCE Loss gradient: dL/dPredicted = -(target/p - (1-target)/(1-p)) / N
+ * Uses the same clamping as the forward pass for numerical stability.
+ */
+export function bceLossGrad(predicted: Tensor, target: Tensor): Tensor {
+  if (predicted.data.length !== target.data.length) {
+    throw new Error('Predicted and target tensors must have the same size');
+  }
+
+  const grad = Tensor.zerosLike(predicted);
+  const epsilon = 1e-7;
+  const scale = 1.0 / predicted.data.length;
+
+  for (let i = 0; i < predicted.data.length; i++) {
+    const p = Math.max(epsilon, Math.min(1 - epsilon, predicted.data[i]));
+    grad.data[i] = scale * -(target.data[i] / p - (1 - target.data[i]) / (1 - p));
+  }
+
+  return grad;
 }
 
 /**
@@ -155,6 +196,11 @@ function calculateEdgeLossGrad(predicted: Tensor, target: Tensor): Tensor {
   const count = batch * channels * (height - 1) * (width - 1) * 2;
   const scale = 1.0 / count;
 
+  // Subgradient of |x|: 0 when x is exactly 0
+  const sign = (v: number): number => (v > 0 ? 1 : v < 0 ? -1 : 0);
+  // Subgradient of |a - b|: 0 when the values are equal
+  const compareSign = (a: number, b: number): number => (a > b ? 1 : a < b ? -1 : 0);
+
   for (let b = 0; b < batch; b++) {
     for (let c = 0; c < channels; c++) {
       for (let h = 0; h < height - 1; h++) {
@@ -168,9 +214,9 @@ function calculateEdgeLossGrad(predicted: Tensor, target: Tensor): Tensor {
           const targetDiffH = target.data[idx] - target.data[idxRight];
           const predGradH = Math.abs(predDiffH);
           const targetGradH = Math.abs(targetDiffH);
-          const signH = predGradH > targetGradH ? 1 : -1;
-          const gradSignH = predDiffH >= 0 ? 1 : -1;
-          
+          const signH = compareSign(predGradH, targetGradH);
+          const gradSignH = sign(predDiffH);
+
           grad.data[idx] += scale * signH * gradSignH;
           grad.data[idxRight] += scale * signH * (-gradSignH);
 
@@ -179,9 +225,9 @@ function calculateEdgeLossGrad(predicted: Tensor, target: Tensor): Tensor {
           const targetDiffV = target.data[idx] - target.data[idxDown];
           const predGradV = Math.abs(predDiffV);
           const targetGradV = Math.abs(targetDiffV);
-          const signV = predGradV > targetGradV ? 1 : -1;
-          const gradSignV = predDiffV >= 0 ? 1 : -1;
-          
+          const signV = compareSign(predGradV, targetGradV);
+          const gradSignV = sign(predDiffV);
+
           grad.data[idx] += scale * signV * gradSignV;
           grad.data[idxDown] += scale * signV * (-gradSignV);
         }

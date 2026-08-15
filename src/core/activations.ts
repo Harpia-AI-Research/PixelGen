@@ -116,7 +116,7 @@ export function tanh(input: Tensor): Tensor {
 
 /**
  * Softmax activation (typically used in output layer)
- * Operates on the last dimension
+ * Operates on the last dimension of the input shape.
  */
 export function softmax(input: Tensor): Tensor {
   const result = new Tensor(
@@ -125,22 +125,54 @@ export function softmax(input: Tensor): Tensor {
     input.requiresGrad
   );
 
-  // Find max for numerical stability
-  let max = -Infinity;
-  for (let i = 0; i < input.data.length; i++) {
-    if (input.data[i] > max) max = input.data[i];
+  const lastDim = input.shape[input.shape.length - 1];
+  const numRows = input.data.length / lastDim;
+
+  for (let r = 0; r < numRows; r++) {
+    const offset = r * lastDim;
+
+    // Find max for numerical stability
+    let max = -Infinity;
+    for (let i = 0; i < lastDim; i++) {
+      const v = input.data[offset + i];
+      if (v > max) max = v;
+    }
+
+    // Compute exp and sum
+    let sum = 0;
+    for (let i = 0; i < lastDim; i++) {
+      result.data[offset + i] = Math.exp(input.data[offset + i] - max);
+      sum += result.data[offset + i];
+    }
+
+    // Normalize
+    for (let i = 0; i < lastDim; i++) {
+      result.data[offset + i] /= sum;
+    }
   }
 
-  // Compute exp and sum
-  let sum = 0;
-  for (let i = 0; i < input.data.length; i++) {
-    result.data[i] = Math.exp(input.data[i] - max);
-    sum += result.data[i];
-  }
+  if (input.requiresGrad) {
+    result._prev.add(input);
 
-  // Normalize
-  for (let i = 0; i < input.data.length; i++) {
-    result.data[i] /= sum;
+    result._backward = () => {
+      if (!result.grad) return;
+      if (!input.grad) input.grad = Tensor.zerosLike(input);
+
+      // dL/dx_i = s_i * (dL/ds_i - sum_k(dL/ds_k * s_k))
+      for (let r = 0; r < numRows; r++) {
+        const offset = r * lastDim;
+
+        let dot = 0;
+        for (let k = 0; k < lastDim; k++) {
+          dot += result.grad.data[offset + k] * result.data[offset + k];
+        }
+
+        for (let i = 0; i < lastDim; i++) {
+          input.grad.data[offset + i] +=
+            result.data[offset + i] * (result.grad.data[offset + i] - dot);
+        }
+      }
+    };
   }
 
   return result;

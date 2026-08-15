@@ -1,7 +1,16 @@
 import { PixelGenModel } from '../model/PixelGenModel';
 import { ImageDataset } from '../data/ImageLoader';
-import { Optimizer, Adam } from './Optimizer';
-import { mseLoss, pixelArtLoss, mseLossGrad, pixelArtLossGrad } from './Loss';
+import { Optimizer, Adam, SGD } from './Optimizer';
+import {
+  mseLoss,
+  maeLoss,
+  bceLoss,
+  pixelArtLoss,
+  mseLossGrad,
+  maeLossGrad,
+  bceLossGrad,
+  pixelArtLossGrad,
+} from './Loss';
 import { Tensor } from '../core/Tensor';
 
 export interface TrainingConfig {
@@ -9,7 +18,7 @@ export interface TrainingConfig {
   batchSize: number;
   learningRate: number;
   optimizer: 'sgd' | 'adam';
-  lossFunction: 'mse' | 'pixelart';
+  lossFunction: 'mse' | 'mae' | 'bce' | 'pixelart';
   verbose: boolean;
 }
 
@@ -41,8 +50,7 @@ export class Trainer {
     if (config.optimizer === 'adam') {
       this.optimizer = new Adam(config.learningRate);
     } else {
-      // SGD not yet implemented in this simplified version
-      this.optimizer = new Adam(config.learningRate);
+      this.optimizer = new SGD(config.learningRate);
     }
   }
 
@@ -120,18 +128,28 @@ export class Trainer {
   }
 
   private calculateLoss(predicted: Tensor, target: Tensor): number {
-    if (this.config.lossFunction === 'pixelart') {
-      return pixelArtLoss(predicted, target);
-    } else {
-      return mseLoss(predicted, target);
+    switch (this.config.lossFunction) {
+      case 'mae':
+        return maeLoss(predicted, target);
+      case 'bce':
+        return bceLoss(predicted, target);
+      case 'pixelart':
+        return pixelArtLoss(predicted, target);
+      default:
+        return mseLoss(predicted, target);
     }
   }
 
   private calculateLossGrad(predicted: Tensor, target: Tensor): Tensor {
-    if (this.config.lossFunction === 'pixelart') {
-      return pixelArtLossGrad(predicted, target);
-    } else {
-      return mseLossGrad(predicted, target);
+    switch (this.config.lossFunction) {
+      case 'mae':
+        return maeLossGrad(predicted, target);
+      case 'bce':
+        return bceLossGrad(predicted, target);
+      case 'pixelart':
+        return pixelArtLossGrad(predicted, target);
+      default:
+        return mseLossGrad(predicted, target);
     }
   }
 

@@ -13,7 +13,9 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "clean": "if (Test-Path dist) { Remove-Item -Recurse -Force dist }",
+    "clean": "if (Test-Path dist) { Remove-Item -Recurse -Force dist }; if (Test-Path dist-test) { Remove-Item -Recurse -Force dist-test }",
+    "pretest": "tsc -p tsconfig.test.json",
+    "test": "node --test dist-test/test/",
     "prepublishOnly": "npm run build",
     "example:basic": "npm run build && node dist/examples/basic-training.js",
     "example:advanced": "npm run build && node dist/examples/advanced-usage.js",
